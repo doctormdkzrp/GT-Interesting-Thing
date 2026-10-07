@@ -5,6 +5,7 @@ import java.util.Locale;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
 
 import com.cleanroommc.modularui.api.drawable.IDrawable;
 import com.cleanroommc.modularui.api.drawable.IKey;
@@ -634,6 +635,8 @@ public class LotteryGui {
                     return EnumChatFormatting.RED + "卡池不存在或暂不可用";
                 case LotteryClientData.RESULT_ERROR:
                     return EnumChatFormatting.RED + "抽奖失败，请稍后再试";
+                case LotteryClientData.RESULT_LOCKED:
+                    return EnumChatFormatting.RED + StatCollector.translateToLocal("gtit.lottery.result.locked");
                 default:
                     return "";
             }
@@ -931,6 +934,17 @@ public class LotteryGui {
                     t.addLine(IKey.str(EnumChatFormatting.RED + "奖池尚未配置有效奖品，请进入编辑模式配置"));
                     return;
                 }
+                // 未解锁卡池：tooltip 明显提示锁定 + 前置任务 UUID
+                if (!pool.unlocked) {
+                    t.addLine(
+                        IKey.str(
+                            EnumChatFormatting.RED + StatCollector.translateToLocal("gtit.lottery.locked.tooltip")));
+                    if (pool.getRequireBqQuest() != null && !pool.getRequireBqQuest()
+                        .isEmpty()) {
+                        t.addLine(IKey.str(EnumChatFormatting.GRAY + pool.getRequireBqQuest()));
+                    }
+                    return;
+                }
                 // v1.7.6 costItems 口径：逐条列出消耗（货币条目带团队余额）
                 t.addLine(IKey.str(EnumChatFormatting.YELLOW + label + " 消耗："));
                 boolean anyCost = false;
@@ -978,6 +992,8 @@ public class LotteryGui {
                 }
                 LotteryClientData.PoolSummary pool = LotteryClientData.getSelectedPool();
                 if (pool == null) return false;
+                // 未解锁卡池：本地拦截（服务端已权威拦截，此处仅体验优化）
+                if (!pool.unlocked) return true;
                 if (!hasDrawablePrize(pool)) return true;
                 // 动画旋转期间禁止连发（服务端也有幂等兜底）
                 if (LotteryAnimationController.getInstance()

@@ -396,7 +396,8 @@ final class LotteryEditActions {
      *   "pityEnabled": true,
      *   "softPityThreshold": 30,
      *   "hardPityThreshold": 50,
-     *   "guaranteedRarity": "EPIC"
+     *   "guaranteedRarity": "EPIC",
+     *   "requireBqQuest": ""          // 前置 BQ 任务（high:low / UUID / Base64；空串 = 无前置）
      * }
      * }
      * </pre>
@@ -450,6 +451,12 @@ final class LotteryEditActions {
         if (json.has("guaranteedRarity")) pity.setGuaranteedRarity(
             json.get("guaranteedRarity")
                 .getAsString());
+        // 前置 BQ 任务（键存在即写回；空串 = 清除前置）
+        if (json.has("requireBqQuest")) {
+            pool.setRequireBqQuest(
+                json.get("requireBqQuest")
+                    .getAsString());
+        }
         // 旧字段同步重写（保持兼容展示口径一致）
         syncLegacyCurrencyFields(pool);
     }

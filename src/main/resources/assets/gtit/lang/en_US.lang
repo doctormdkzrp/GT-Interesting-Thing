@@ -82,6 +82,46 @@ item.shimmering_neko_coin.name=Shimmering Neko Coin
 item.shimmering_neko_coin.tooltip.0=A cat memorial coin radiating mysterious light
 item.shimmering_neko_coin.tooltip.1=Extremely rare, can only be caught while fishing
 
+# Starlight Neko Coin
+item.starlight_neko_coin.name=Starlight Neko Coin
+item.starlight_neko_coin.tooltip.0=A cat memorial coin flecked with starlight
+item.starlight_neko_coin.tooltip.1=Tier 3 cat coin: 64 Shimmering Neko Coins exchange for 1
+
+# Moonlit Neko Coin
+item.moonlit_neko_coin.name=Moonlit Neko Coin
+item.moonlit_neko_coin.tooltip.0=A cat memorial coin steeped in cold moonlight
+item.moonlit_neko_coin.tooltip.1=Tier 4 cat coin: 64 Starlight Neko Coins exchange for 1
+
+# Sunfire Neko Coin
+item.sunfire_neko_coin.name=Sunfire Neko Coin
+item.sunfire_neko_coin.tooltip.0=A cat memorial coin dancing with solar flame
+item.sunfire_neko_coin.tooltip.1=Tier 5 cat coin: 64 Moonlit Neko Coins exchange for 1
+
+# Jade Neko Coin
+item.jade_neko_coin.name=Jade Neko Coin
+item.jade_neko_coin.tooltip.0=A cat memorial coin as green as a cat's eye
+item.jade_neko_coin.tooltip.1=Tier 6 cat coin: 64 Sunfire Neko Coins exchange for 1
+
+# Sapphire Neko Coin
+item.sapphire_neko_coin.name=Sapphire Neko Coin
+item.sapphire_neko_coin.tooltip.0=A cat memorial coin clear as deep-sea blue
+item.sapphire_neko_coin.tooltip.1=Tier 7 cat coin: 64 Jade Neko Coins exchange for 1
+
+# Amethyst Neko Coin
+item.amethyst_neko_coin.name=Amethyst Neko Coin
+item.amethyst_neko_coin.tooltip.0=A cat memorial coin swirling with violet starlight
+item.amethyst_neko_coin.tooltip.1=Tier 8 cat coin: 64 Sapphire Neko Coins exchange for 1
+
+# Prismatic Neko Coin
+item.prismatic_neko_coin.name=Prismatic Neko Coin
+item.prismatic_neko_coin.tooltip.0=A cat memorial coin refracting every color of the rainbow
+item.prismatic_neko_coin.tooltip.1=Tier 9 cat coin: 64 Amethyst Neko Coins exchange for 1
+
+# Eternal Neko Coin
+item.eternal_neko_coin.name=Eternal Neko Coin
+item.eternal_neko_coin.tooltip.0=A legendary cat memorial coin that never fades
+item.eternal_neko_coin.tooltip.1=Tier 10 cat coin: 64 Prismatic Neko Coins exchange for 1
+
 # Reincarnation Crystal
 item.reincarnation_crystal.name=Reincarnation Crystal
 
@@ -191,6 +231,11 @@ betterquesting.quest.R1RJVAAAAAAAAAAAAAAAJA.desc=GTIT's own answer to unlimited 
 betterquesting.quest.R1RJVAAAAAAAAAAAAAAAJQ.name=Neko Dimension Pocket
 betterquesting.quest.R1RJVAAAAAAAAAAAAAAAJQ.desc=Retrieve a Neko Dimension Pocket. It will not be consumed.%n%nA portable cat warehouse: 135 storage slots, fluid and essentia management, ME channel transfer — wearable, keeps working even with the GUI closed, and accepts five upgrade modules.%n%nReward: choose one of the five upgrade modules.
 # BQ quests [pack=gtit] END
+
+# Lottery pool prerequisite BQ quest lock (v1.9.x; result.locked=client result-code prompt, locked.tooltip=pool locked hint, edit.require_bq=pool editor label)
+gtit.lottery.result.locked=Complete the prerequisite quest first
+gtit.lottery.locked.tooltip=[Locked] Requires a prerequisite quest
+gtit.lottery.edit.require_bq=Prerequisite BQ Quest:
 
 # Reincarnation Cycle GUI (v1.8.8 texture retouch; keys consumed via formatted paths keep %% escaping, button/tooltip keys read via translateToLocal use a single %)
 # Button/tooltip labels are read via translateToLocal (never formatted) — the literal %% leaked on screen, now a single %;

@@ -82,6 +82,46 @@ item.shimmering_neko_coin.name=闪烁猫猫币
 item.shimmering_neko_coin.tooltip.0=散发着神秘光芒的猫猫纪念币
 item.shimmering_neko_coin.tooltip.1=极为稀有，仅能从鱼塘中钓起
 
+# 星光猫猫币
+item.starlight_neko_coin.name=星光猫猫币
+item.starlight_neko_coin.tooltip.0=凝结着点点星光的猫猫纪念币
+item.starlight_neko_coin.tooltip.1=第 3 档猫猫币：64 枚闪烁猫猫币可兑换 1 枚
+
+# 月华猫猫币
+item.moonlit_neko_coin.name=月华猫猫币
+item.moonlit_neko_coin.tooltip.0=浸染着清冷月华的猫猫纪念币
+item.moonlit_neko_coin.tooltip.1=第 4 档猫猫币：64 枚星光猫猫币可兑换 1 枚
+
+# 曜阳猫猫币
+item.sunfire_neko_coin.name=曜阳猫猫币
+item.sunfire_neko_coin.tooltip.0=跃动着烈日之焰的猫猫纪念币
+item.sunfire_neko_coin.tooltip.1=第 5 档猫猫币：64 枚月华猫猫币可兑换 1 枚
+
+# 翡翠猫猫币
+item.jade_neko_coin.name=翡翠猫猫币
+item.jade_neko_coin.tooltip.0=通体碧透如猫眼的猫猫纪念币
+item.jade_neko_coin.tooltip.1=第 6 档猫猫币：64 枚曜阳猫猫币可兑换 1 枚
+
+# 湛蓝猫猫币
+item.sapphire_neko_coin.name=湛蓝猫猫币
+item.sapphire_neko_coin.tooltip.0=澄澈如深海之蓝的猫猫纪念币
+item.sapphire_neko_coin.tooltip.1=第 7 档猫猫币：64 枚翡翠猫猫币可兑换 1 枚
+
+# 紫曜猫猫币
+item.amethyst_neko_coin.name=紫曜猫猫币
+item.amethyst_neko_coin.tooltip.0=流转着紫色星芒的猫猫纪念币
+item.amethyst_neko_coin.tooltip.1=第 8 档猫猫币：64 枚湛蓝猫猫币可兑换 1 枚
+
+# 虹彩猫猫币
+item.prismatic_neko_coin.name=虹彩猫猫币
+item.prismatic_neko_coin.tooltip.0=折射出七彩虹光的猫猫纪念币
+item.prismatic_neko_coin.tooltip.1=第 9 档猫猫币：64 枚紫曜猫猫币可兑换 1 枚
+
+# 永恒猫猫币
+item.eternal_neko_coin.name=永恒猫猫币
+item.eternal_neko_coin.tooltip.0=传说中永不褪色的猫猫纪念币
+item.eternal_neko_coin.tooltip.1=第 10 档猫猫币：64 枚虹彩猫猫币可兑换 1 枚
+
 # 轮回水晶
 item.reincarnation_crystal.name=轮回水晶
 
@@ -191,6 +231,11 @@ betterquesting.quest.R1RJVAAAAAAAAAAAAAAAJA.desc=GTIT 自有的无限存储答�
 betterquesting.quest.R1RJVAAAAAAAAAAAAAAAJQ.name=猫猫次元口袋
 betterquesting.quest.R1RJVAAAAAAAAAAAAAAAJQ.desc=检索一只猫猫次元口袋，它不会被消耗。%n%n这是一只随身携带的猫猫仓库：135 格储物、流体与源质管理、ME 通道搬运，可穿戴、关上背包也持续工作，还能安装五种升级插件。%n%n奖励：从五种升级插件中任选其一。
 # BQ quests [pack=gtit] END
+
+# 抽奖卡池前置 BQ 任务锁（v1.9.x；result.locked=客户端结果码提示，locked.tooltip=卡池锁定提示，edit.require_bq=池编辑面板标签）
+gtit.lottery.result.locked=未完成前置任务，无法抽奖
+gtit.lottery.locked.tooltip=[锁定] 需完成前置任务
+gtit.lottery.edit.require_bq=前置BQ任务:
 
 # Reincarnation Cycle GUI (v1.8.8 贴图化接线；经格式化路径消费的键保留 %% 转义，按钮/tooltip 走 translateToLocal 直读路径用单 %)
 # 按钮/tooltip 文案由 translateToLocal 直读（不格式化），%% 曾字面漏出，改单 %；

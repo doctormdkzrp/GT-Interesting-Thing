@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.nbt.NBTTagCompound;
@@ -43,9 +44,10 @@ public class LotterySyncPacket implements IMessage {
      * @param pools        卡池列表（{@link LotteryManager#getAllPools()}）
      * @param pityCounters 团队保底计数快照
      * @param balances     团队钱包余额（currencyId → 数量，仅含卡池消耗币种）
+     * @param targetPlayer 目标玩家 UUID（前置任务解锁状态按此玩家实算）
      */
-    public LotterySyncPacket(List<LotteryPool> pools, Map<String, Integer> pityCounters,
-        Map<String, Integer> balances) {
+    public LotterySyncPacket(List<LotteryPool> pools, Map<String, Integer> pityCounters, Map<String, Integer> balances,
+        UUID targetPlayer) {
         NBTTagCompound root = new NBTTagCompound();
 
         // --- 卡池摘要 ---
@@ -91,6 +93,9 @@ public class LotterySyncPacket implements IMessage {
                     }
                 }
                 poolTag.setTag("entries", entryList);
+                // 前置 BQ 任务（v1.9.x）：任务 UUID 原文 + 按目标玩家实算的解锁态
+                poolTag.setString("requireBqQuest", pool.getRequireBqQuest());
+                poolTag.setBoolean("unlocked", LotteryManager.isPoolUnlocked(targetPlayer, pool));
                 poolList.appendTag(poolTag);
             }
         }
@@ -179,6 +184,9 @@ public class LotterySyncPacket implements IMessage {
             summary.softPityIncrement = poolTag.hasKey("softPityInc") ? poolTag.getDouble("softPityInc") : 5.0;
             summary.hardPityThreshold = poolTag.getInteger("hardPity");
             summary.guaranteedRarity = poolTag.getString("guaranteed");
+            // 前置 BQ 任务（旧包无键时缺省 = 无前置 = 解锁，安全回退）
+            summary.requireBqQuest = poolTag.getString("requireBqQuest");
+            summary.unlocked = !poolTag.hasKey("unlocked") || poolTag.getBoolean("unlocked");
             NBTTagList entryList = poolTag.getTagList("entries", 10);
             for (int j = 0; j < entryList.tagCount(); j++) {
                 LotteryEntry entry = LotteryEntry.fromNBT(entryList.getCompoundTagAt(j));

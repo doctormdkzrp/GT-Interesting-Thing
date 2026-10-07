@@ -641,6 +641,12 @@ public final class TradePage {
                         if (iconStack != null) {
                             return new ItemDrawable(iconStack);
                         }
+                        // 任务二：优先用货币 ID 的真实物品图标渲染（10 种币通用，不再二选一），
+                        // 实在拿不到再回退到既有的两张抽奖币贴图兜底
+                        ItemStack coinStack = NekoCurrencyRegistrar.getItemStack(pool.currencyId, 1);
+                        if (coinStack != null) {
+                            return new ItemDrawable(coinStack);
+                        }
                         return NekoCurrencyRegistrar.SHIMMERING_NEKO_ID.equals(pool.currencyId)
                             ? NekoGuiTextures.LOTTERY_COIN_SHIMMER
                             : NekoGuiTextures.LOTTERY_COIN_NEKO;
@@ -1189,7 +1195,12 @@ public final class TradePage {
             .fullWidth()
             .marginBottom(2);
 
-        int offset = 0;
+        // 十档币布局取舍（任务二）：面板宽 PANEL_WIDTH=178，每枚币组件宽 76，
+        // 原先写死 2 种币正好放得下；扩展到 10 种后若全排一行会横向溢出并相互重叠。
+        // 取舍：仍按档位升序逐枚生成（getNekoCurrencyIds 的顺序即档位顺序），但每枚绑定
+        // 「余额 > 0 才显示」的 setEnabledIf（每帧动态求值，规避客户端建 GUI 时余额同步值
+        // 尚未到达的时间窗），行内 collapseDisabledChild 自动收拢零余额档位、不占位不重叠；
+        // 同时持有超过约 2 档非零币的极端情况，超出可视宽度的档位由面板裁剪，不会崩溃。
         for (String currencyId : NekoCurrencyRegistrar.getNekoCurrencyIds()) {
             final String cid = currencyId;
             String displayName = NekoCurrencyRegistrar.getDisplayName(currencyId);
@@ -1206,9 +1217,13 @@ public final class TradePage {
                         sync.setValue(true);
                     }
                 });
-            coinDisplay.left(offset);
+            // 余额非零才显示；借下方 row 的 collapseDisabledChild 收拢零余额档位
+            IntSyncValue balanceSync = syncManager
+                .findSyncHandler("nekoCoinAmount_" + currencyId, 0, IntSyncValue.class);
+            if (balanceSync != null) {
+                coinDisplay.setEnabledIf(w -> balanceSync.getValue() > 0);
+            }
             row.child(coinDisplay);
-            offset += 79; // 组件宽度 76 + 间距 3 = 79
         }
 
         // 根据货币显示开关控制余额行的显示/隐藏

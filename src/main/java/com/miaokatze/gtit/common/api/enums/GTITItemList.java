@@ -44,6 +44,22 @@ public enum GTITItemList implements IItemContainer {
     NekoCoin,
     // 闪烁猫猫币
     ShimmeringNekoCoin,
+    // 星光猫猫币
+    StarlightNekoCoin,
+    // 月华猫猫币
+    MoonlitNekoCoin,
+    // 曜阳猫猫币
+    SunfireNekoCoin,
+    // 翡翠猫猫币
+    JadeNekoCoin,
+    // 湛蓝猫猫币
+    SapphireNekoCoin,
+    // 紫曜猫猫币
+    AmethystNekoCoin,
+    // 虹彩猫猫币
+    PrismaticNekoCoin,
+    // 永恒猫猫币
+    EternalNekoCoin,
 
     // 猫猫售货机 (独立化多方块机器，继承 GT5U 的 MTEEnhancedMultiBlockBase)
     // V2 接管 V1 的 ID 14610，统一使用此容器

@@ -142,6 +142,12 @@ public class LotteryRequestPacket implements IMessage {
                 return;
             }
 
+            // 2.5 前置 BQ 任务解锁判定（服务端权威；未解锁整包拒绝，客户端显示锁定提示）
+            if (!LotteryManager.isPoolUnlocked(playerId, pool)) {
+                sendFailure(player, poolId, LotteryClientData.RESULT_LOCKED, "未完成前置任务，无法抽奖");
+                return;
+            }
+
             // 3. 消耗预校验（v1.7.6 costItems 分流口径：货币条目查团队钱包余额、
             // 物品条目在机器输入槽副本模拟扣除；失败时给出明确错误码）
             if (!LotteryManager.INSTANCE.canAfford(playerId, pool, count, machine)) {

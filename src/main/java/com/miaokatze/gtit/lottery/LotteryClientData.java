@@ -46,6 +46,8 @@ public final class LotteryClientData {
     public static final int RESULT_POOL_MISSING = 3;
     /** 其他失败（机器无效等） */
     public static final int RESULT_ERROR = 4;
+    /** 未完成前置 BQ 任务（卡池锁定） */
+    public static final int RESULT_LOCKED = 5;
 
     // ==================== 同步状态字段 ====================
 
@@ -106,10 +108,24 @@ public final class LotteryClientData {
         public int hardPityThreshold;
         /** 硬保底保证的最低稀有度名 */
         public String guaranteedRarity = "EPIC";
+        /** 前置 BQ 任务 UUID（空串 = 无前置） */
+        public String requireBqQuest = "";
+        /** 该池是否对当前玩家解锁（服务端实算并同步；缺省 true 防旧包误锁） */
+        public boolean unlocked = true;
 
         /** 单抽总价（count 连抽）——旧字段口径，仅货币展示兼容用 */
         public int totalCost(int count) {
             return costPerDraw * Math.max(1, count);
+        }
+
+        /** 前置 BQ 任务 UUID（null 归一为空串） */
+        public String getRequireBqQuest() {
+            return requireBqQuest == null ? "" : requireBqQuest;
+        }
+
+        /** 该池是否对当前玩家解锁 */
+        public boolean isUnlocked() {
+            return unlocked;
         }
 
         /**

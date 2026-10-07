@@ -317,6 +317,9 @@ public class NekoTradeRegistryV2 {
         }
 
         // 无有效 tabId 时按货币类型兜底
+        // 任务二：此兜底只负责「旧两条链」与「默认页」的粗略落位，不做逐档特判——10 种币里
+        // 新增的 8 档（starlightNeko…eternalNeko）在此路径统一落到 tabId 3，安全兜底、不会越界；
+        // 正常内置交易组的新增链条目都显式带 tabId=2，不会走到这里。
         if (NekoCurrencyRegistrar.NEKO_ID.equals(currencyId)) {
             return NekoTradeCategory.ofTabId(1);
         } else if (NekoCurrencyRegistrar.SHIMMERING_NEKO_ID.equals(currencyId)) {

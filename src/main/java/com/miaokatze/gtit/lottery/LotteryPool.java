@@ -60,6 +60,8 @@ public class LotteryPool {
     private List<LotteryEntry> entries;
     /** 保底配置 */
     private PityConfig pityConfig;
+    /** 前置 BQ 任务 UUID（空串 = 无前置） */
+    private String requireBqQuest = "";
     /** 权重随机数生成器（transient，不参与 Gson） */
     private transient final Random random = new Random();
 
@@ -311,5 +313,19 @@ public class LotteryPool {
 
     public void setPityConfig(PityConfig pityConfig) {
         this.pityConfig = pityConfig;
+    }
+
+    /**
+     * 前置 BQ 任务 UUID（空串 = 无前置；null 归一为空串）
+     */
+    public String getRequireBqQuest() {
+        return requireBqQuest == null ? "" : requireBqQuest;
+    }
+
+    /**
+     * 设置前置 BQ 任务 UUID（null 归一为空串并 trim）
+     */
+    public void setRequireBqQuest(String requireBqQuest) {
+        this.requireBqQuest = requireBqQuest == null ? "" : requireBqQuest.trim();
     }
 }

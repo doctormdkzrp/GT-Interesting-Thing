@@ -2,6 +2,7 @@ package com.miaokatze.gtit.gui.vm.edit;
 
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
+import net.minecraft.util.StatCollector;
 
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -88,6 +89,8 @@ public final class LotteryPoolEditor {
     private int editPoolHardPity = 50;
     /** 池编辑：硬保底保证稀有度名（COMMON/RARE/EPIC/LEGENDARY） */
     private String editPoolGuaranteedRarity = "EPIC";
+    /** 池编辑：前置 BQ 任务 UUID（留空 = 无前置） */
+    private String editPoolBqQuestId = "";
 
     public void beginEdit(LotteryClientData.PoolSummary pool) {
         if (pool == null || pool.id == null || pool.id.isEmpty()) return;
@@ -103,6 +106,7 @@ public final class LotteryPoolEditor {
         editPoolGuaranteedRarity = pool.guaranteedRarity != null && !pool.guaranteedRarity.isEmpty()
             ? pool.guaranteedRarity
             : "EPIC";
+        editPoolBqQuestId = pool.requireBqQuest != null ? pool.requireBqQuest : "";
         // 通知服务端加载该池的图标/消耗需求物品到编辑缓冲区
         if (editPoolTargetSync != null) {
             editPoolTargetSync.setValue(pool.id);
@@ -120,6 +124,7 @@ public final class LotteryPoolEditor {
         editPoolSoftPity = 30;
         editPoolHardPity = 50;
         editPoolGuaranteedRarity = "EPIC";
+        editPoolBqQuestId = "";
         // 通知服务端清空编辑缓冲区（新建模式无既有物品可加载）
         if (editPoolTargetSync != null) {
             editPoolTargetSync.setValue(POOL_TARGET_NEW);
@@ -160,7 +165,7 @@ public final class LotteryPoolEditor {
 
     public NekoDraggableEditPanel buildEditPanel() {
         NekoDraggableEditPanel editPanel = new NekoDraggableEditPanel();
-        editPanel.size(210, 222);
+        editPanel.size(210, 240);
         // v1.7.7 G2 迁移为主面板内嵌 ParentWidget 覆盖层后无默认背景，需手动补上 MC 风格背景
         editPanel.background(GuiTextures.MC_BACKGROUND);
         editPanel.leftRel(0.5f)
@@ -364,6 +369,26 @@ public final class LotteryPoolEditor {
         rarityButton.tooltipAutoUpdate(true);
         editPanel.child(rarityButton);
 
+        // ---- 前置 BQ 任务 UUID（留空 = 无前置；未完成该任务的玩家无法对该池抽奖）----
+        fieldY += 17;
+        editPanel.child(
+            new TextWidget<>(IKey.str(StatCollector.translateToLocal("gtit.lottery.edit.require_bq"))).left(8)
+                .top(fieldY + 2));
+
+        TextFieldWidget bqQuestField = new TextFieldWidget()
+            .value(new StringValue.Dynamic(() -> editPoolBqQuestId, val -> editPoolBqQuestId = val))
+            .setMaxLength(60);
+        bqQuestField.left(labelWidth)
+            .top(fieldY)
+            .size(fieldWidth, fieldHeight);
+        bqQuestField.tooltipBuilder(t -> {
+            t.addLine(IKey.str("前置 BetterQuesting 任务 UUID"));
+            t.addLine(IKey.str(EnumChatFormatting.GRAY + "支持 high:low / UUID / Base64 格式"));
+            t.addLine(IKey.str(EnumChatFormatting.GRAY + "留空 = 无前置，所有玩家可直接抽奖"));
+        });
+        bqQuestField.tooltipAutoUpdate(true);
+        editPanel.child(bqQuestField);
+
         // ---- 保存 / 删除 / 取消按钮 ----
         editPanel.child(
             new ButtonWidget<>().size(50, 16)
@@ -449,6 +474,8 @@ public final class LotteryPoolEditor {
             json.addProperty("softPityThreshold", editPoolSoftPity);
             json.addProperty("hardPityThreshold", editPoolHardPity);
             json.addProperty("guaranteedRarity", editPoolGuaranteedRarity);
+            // 前置 BQ 任务（留空 = 无前置）
+            json.addProperty("requireBqQuest", editPoolBqQuestId);
             if (editPoolIsNew) {
                 com.miaokatze.gtit.trade.v2.NekoEditNetworkManager.sendCreateLotteryPool(json.toString());
             } else {

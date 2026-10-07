@@ -333,7 +333,7 @@ public final class BlessingEditor {
             .top(fieldY)
             .size(86, fieldHeight);
         currencyField.tooltipBuilder(t -> {
-            t.addLine(IKey.str("货币 ID：neko / shimmeringNeko"));
+            t.addLine(IKey.str("货币 ID：neko / shimmeringNeko / starlightNeko …"));
             t.addLine(IKey.str(EnumChatFormatting.GRAY + "留空 = 无猫猫币附件"));
         });
         currencyField.tooltipAutoUpdate(true);

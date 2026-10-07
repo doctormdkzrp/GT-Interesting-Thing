@@ -154,7 +154,7 @@ public final class LotteryEntryEditor {
             .top(fieldY)
             .size(fieldWidth, fieldHeight);
         currencyField.tooltipBuilder(t -> {
-            t.addLine(IKey.str("货币 ID（如 neko / shimmeringNeko）"));
+            t.addLine(IKey.str("货币 ID（如 neko / shimmeringNeko / starlightNeko …）"));
             t.addLine(IKey.str(EnumChatFormatting.YELLOW + "非空 = 货币奖品，保存时忽略下方物品"));
             t.addLine(IKey.str(EnumChatFormatting.GRAY + "留空 = 物品奖品（需放入物品）"));
         });

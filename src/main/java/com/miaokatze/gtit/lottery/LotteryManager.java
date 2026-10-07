@@ -27,6 +27,7 @@ import com.miaokatze.gtit.trade.NekoWallet;
 import com.miaokatze.gtit.trade.NekoWalletManager;
 import com.miaokatze.gtit.trade.TeamDataProvider;
 import com.miaokatze.gtit.trade.v2.NekoBigItemStack;
+import com.miaokatze.gtit.trade.v2.NekoBqBridge;
 import com.miaokatze.gtit.trade.v2.NekoTradeExecutor;
 
 import gregtech.api.interfaces.tileentity.IGregTechTileEntity;
@@ -121,6 +122,47 @@ public class LotteryManager {
         return TeamDataProvider.resolveTeamKey(playerId);
     }
 
+    // ==================== 前置 BQ 任务解锁判定 ====================
+
+    /**
+     * 卡池是否对指定玩家解锁（无前置 / BQ 不可用 / 解析失败 / 查询异常 → 一律 true）
+     * <p>
+     * 安全回退优先（与 {@link com.miaokatze.gtit.trade.v2.NekoBqCondition} 同口径）：
+     * 任何 BQ 环境问题都不阻断抽奖，避免把玩家卡死；仅在任务真实存在且确未完成时才返回 false。
+     *
+     * @param playerId 玩家 UUID
+     * @param pool     卡池
+     * @return 未锁定（可抽）返回 true，被前置任务锁定返回 false
+     */
+    public static boolean isPoolUnlocked(UUID playerId, LotteryPool pool) {
+        // 无卡池 / 无前置任务 → 放行
+        if (pool == null || pool.getRequireBqQuest()
+            .isEmpty()) return true;
+        // 无玩家 → 放行
+        if (playerId == null) return true;
+        // BQ 未加载 → 放行
+        if (!NekoBqBridge.isBqLoaded()) return true;
+        // 解析任务 UUID，失败 → 放行（记一次 warn，不刷屏）
+        UUID questId;
+        try {
+            questId = com.miaokatze.gtit.trade.v2.NekoBqQuestIdParser.parse(pool.getRequireBqQuest());
+        } catch (Exception e) {
+            LOG.warn("抽奖卡池 {} 的前置任务 UUID 解析失败，放行: {}", pool.getId(), pool.getRequireBqQuest());
+            return true;
+        }
+        if (questId == null) {
+            LOG.warn("抽奖卡池 {} 的前置任务 UUID 解析失败（null），放行: {}", pool.getId(), pool.getRequireBqQuest());
+            return true;
+        }
+        // 查询任务完成状态，异常 → 放行
+        try {
+            return NekoBqBridge.isQuestCompleted(playerId, questId);
+        } catch (Exception e) {
+            LOG.warn("抽奖卡池 {} 的前置任务完成查询异常，放行: {}", pool.getId(), e.getMessage());
+            return true;
+        }
+    }
+
     // ==================== 抽奖核心 ====================
 
     /**
@@ -154,6 +196,12 @@ public class LotteryManager {
         LotteryPool pool = pools.get(poolId);
         if (pool == null || !pool.validate()) {
             LOG.warn("抽奖失败：卡池 {} 不存在或无有效条目", poolId);
+            return results;
+        }
+
+        // 1.5 前置 BQ 任务解锁判定（服务端权威：未解锁直接拒绝，不扣费、不动保底计数）
+        if (!isPoolUnlocked(playerId, pool)) {
+            LOG.warn("抽奖拒绝：玩家 {} 未完成卡池 {} 的前置任务，禁止抽奖", playerId, poolId);
             return results;
         }
 

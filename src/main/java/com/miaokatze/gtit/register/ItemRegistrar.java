@@ -10,6 +10,7 @@ import org.apache.logging.log4j.Logger;
 import com.miaokatze.gtit.common.items.ElectricFloatCore;
 import com.miaokatze.gtit.common.items.FloatCore;
 import com.miaokatze.gtit.common.items.NekoCoin;
+import com.miaokatze.gtit.common.items.NekoTierCoin;
 import com.miaokatze.gtit.common.items.ReincarnationCrystal;
 import com.miaokatze.gtit.common.items.ShimmeringNekoCoin;
 import com.miaokatze.gtit.common.items.StarterGift;
@@ -72,6 +73,30 @@ public class ItemRegistrar {
 
         // 闪烁猫猫币
         registerShimmeringNekoCoin();
+
+        // 星光猫猫币
+        registerStarlightNekoCoin();
+
+        // 月华猫猫币
+        registerMoonlitNekoCoin();
+
+        // 曜阳猫猫币
+        registerSunfireNekoCoin();
+
+        // 翡翠猫猫币
+        registerJadeNekoCoin();
+
+        // 湛蓝猫猫币
+        registerSapphireNekoCoin();
+
+        // 紫曜猫猫币
+        registerAmethystNekoCoin();
+
+        // 虹彩猫猫币
+        registerPrismaticNekoCoin();
+
+        // 永恒猫猫币
+        registerEternalNekoCoin();
 
         // 轮回水晶（周目系统）
         registerReincarnationCrystal();
@@ -150,6 +175,38 @@ public class ItemRegistrar {
 
     private static void registerShimmeringNekoCoin() {
         ShimmeringNekoCoin.setAndRegister(ShimmeringNekoCoin::new);
+    }
+
+    private static void registerStarlightNekoCoin() {
+        StarlightNekoCoin.setAndRegister(() -> new NekoTierCoin("starlight_neko_coin", "gtit:miao_coin_starlight"));
+    }
+
+    private static void registerMoonlitNekoCoin() {
+        MoonlitNekoCoin.setAndRegister(() -> new NekoTierCoin("moonlit_neko_coin", "gtit:miao_coin_moonlit"));
+    }
+
+    private static void registerSunfireNekoCoin() {
+        SunfireNekoCoin.setAndRegister(() -> new NekoTierCoin("sunfire_neko_coin", "gtit:miao_coin_sunfire"));
+    }
+
+    private static void registerJadeNekoCoin() {
+        JadeNekoCoin.setAndRegister(() -> new NekoTierCoin("jade_neko_coin", "gtit:miao_coin_jade"));
+    }
+
+    private static void registerSapphireNekoCoin() {
+        SapphireNekoCoin.setAndRegister(() -> new NekoTierCoin("sapphire_neko_coin", "gtit:miao_coin_sapphire"));
+    }
+
+    private static void registerAmethystNekoCoin() {
+        AmethystNekoCoin.setAndRegister(() -> new NekoTierCoin("amethyst_neko_coin", "gtit:miao_coin_amethyst"));
+    }
+
+    private static void registerPrismaticNekoCoin() {
+        PrismaticNekoCoin.setAndRegister(() -> new NekoTierCoin("prismatic_neko_coin", "gtit:miao_coin_prismatic"));
+    }
+
+    private static void registerEternalNekoCoin() {
+        EternalNekoCoin.setAndRegister(() -> new NekoTierCoin("eternal_neko_coin", "gtit:miao_coin_eternal"));
     }
 
     // ========== 轮回水晶注册（周目系统） ==========

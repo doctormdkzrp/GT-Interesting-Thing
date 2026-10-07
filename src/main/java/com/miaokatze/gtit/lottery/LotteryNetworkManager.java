@@ -129,7 +129,7 @@ public class LotteryNetworkManager {
             }
         }
 
-        channel.sendTo(new LotterySyncPacket(pools, pityCounters, balances), player);
+        channel.sendTo(new LotterySyncPacket(pools, pityCounters, balances, playerId), player);
     }
 
     // ==================== B2-05 全量同步冷却 ====================
