@@ -57,6 +57,8 @@ public final class LotteryClientData {
     private static volatile Map<String, Integer> pityCounters = new LinkedHashMap<>();
     /** 当前选中的卡池 ID（客户端本地状态，跨打开保持） */
     private static volatile String selectedPoolId = "";
+    /** 客户端编辑模式（GUI 侧写入；锁定卡池在编辑模式下仍可被选中/编辑） */
+    private static volatile boolean editMode = false;
 
     // ==================== 最近一次抽取结果（驱动轮盘动画） ====================
 
@@ -281,10 +283,34 @@ public final class LotteryClientData {
     }
 
     /**
-     * 当前选中卡池摘要（无则 null）
+     * 设置客户端编辑模式（GUI 侧写入）
+     * <p>
+     * 编辑模式下锁定卡池对管理员仍可见可编辑，故 {@link #getSelectedPool()} 的
+     * 锁定回退在 editMode 为 true 时被绕过。
      */
-    public static PoolSummary getSelectedPool() {
-        return pools.get(selectedPoolId);
+    public static void setEditMode(boolean v) {
+        editMode = v;
+    }
+
+    /**
+     * 当前选中卡池摘要（无则 null）
+     * <p>
+     * 锁定卡池对玩家不可见，选中态需回退，避免抽奖页展示隐藏卡池：若当前
+     * {@code selectedPoolId} 对应池存在但未解锁且非编辑模式，则回退到 {@code pools}
+     * 中第一个已解锁的池（并同步改写 {@code selectedPoolId}）；不存在任何已解锁池时返回 null。
+     */
+    public static synchronized PoolSummary getSelectedPool() {
+        PoolSummary selected = pools.get(selectedPoolId);
+        if (selected != null && !selected.unlocked && !editMode) {
+            for (PoolSummary pool : pools.values()) {
+                if (pool.unlocked) {
+                    selectedPoolId = pool.id;
+                    return pool;
+                }
+            }
+            return null;
+        }
+        return selected;
     }
 
     /**

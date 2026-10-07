@@ -108,8 +108,17 @@ public class NekoVMGuiV2 extends MTEMultiBlockBaseGui<MTENekoVendingMachineV2>
 
     /** 面板宽度 */
     static final int PANEL_WIDTH = 178;
-    /** 面板高度（与 V1 的 size(178, 320) 保持一致） */
-    static final int PANEL_HEIGHT = 320;
+    /**
+     * 面板高度（V1 为 320）。
+     * <p>
+     * v1.8.61「十档硬币列表」让位调整：猫猫币余额列表由单行（22px）改为 2 列 × 5 行（57px），
+     * 主内容列在「标题 14 + 钱包/ME 行 14 + 搜索栏 16 + 交易列表 146」之后仅剩约 41px
+     * （面板下半部 81px 恒为底锚玩家背包，bottom(5)+高 76），末行会压到背包第一排格子上。
+     * 面板加高 24px 后主列可用高度 231 → 255，57px 列表放得下并留 8px 余量；
+     * 交易列表 / 玩家背包 / IO 列 / 各分页尺寸一概不动（页面高 = PANEL_HEIGHT-8、
+     * 背包 bottom(5)、IO 列 fullHeight 均随面板自动跟随）。
+     */
+    static final int PANEL_HEIGHT = 344;
     /** 每种显示模式预分配的 Widget 数量（与 VM 的 MAX_TRADES 一致） */
     static final int MAX_TRADES = 300;
     /** TILE 模式每行的 Widget 数量 */
@@ -744,6 +753,8 @@ public class NekoVMGuiV2 extends MTEMultiBlockBaseGui<MTENekoVendingMachineV2>
      * @param editMode true 表示处于编辑模式
      */
     private void propagateEditModeToWidgets(boolean editMode) {
+        // 任务二：同步编辑模式到抽奖客户端缓存，使锁定卡池在编辑模式下仍可被选中/编辑
+        LotteryClientData.setEditMode(editMode);
         for (List<NekoTradeItemDisplayWidget> widgets : displayedTradesTiles.values()) {
             for (NekoTradeItemDisplayWidget widget : widgets) {
                 widget.setEditMode(editMode);

@@ -1,5 +1,5 @@
 {
-  "version": 1,
+  "version": 2,
   "pages": [
     {
       "id": 1,
@@ -45,6 +45,14 @@
       "id": 6,
       "name": "基础物资",
       "iconItem": "minecraft:bed",
+      "iconMeta": 0,
+      "iconNbt": "",
+      "isDefault": false
+    },
+    {
+      "id": 7,
+      "name": "硬币兑换",
+      "iconItem": "gtit:eternal_neko_coin",
       "iconMeta": 0,
       "iconNbt": "",
       "isDefault": false

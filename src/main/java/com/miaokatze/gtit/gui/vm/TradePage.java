@@ -19,6 +19,9 @@ import java.util.UUID;
 import net.minecraft.item.ItemStack;
 import net.minecraft.util.EnumChatFormatting;
 
+import org.lwjgl.input.Keyboard;
+
+import com.cleanroommc.modularui.api.drawable.IDrawable;
 import com.cleanroommc.modularui.api.drawable.IKey;
 import com.cleanroommc.modularui.api.widget.IWidget;
 import com.cleanroommc.modularui.api.widget.Interactable;
@@ -33,7 +36,6 @@ import com.cleanroommc.modularui.widgets.ListWidget;
 import com.cleanroommc.modularui.widgets.PagedWidget;
 import com.cleanroommc.modularui.widgets.layout.Flow;
 import com.cleanroommc.modularui.widgets.layout.Grid;
-import com.miaokatze.gtit.client.gui.NekoCoinDisplayV2;
 import com.miaokatze.gtit.client.gui.NekoDisplayType;
 import com.miaokatze.gtit.client.gui.NekoGuiTextures;
 import com.miaokatze.gtit.client.gui.NekoMainTabButton;
@@ -164,8 +166,10 @@ public final class TradePage {
      * <p>
      * TAB_LEFT（{@code NekoGuiTextures#TAB_LEFT}）原生 32x28（PageButton.tab 按纹理定尺寸），
      * 压扁至 25（纹理纵向拉伸 10.7%，4px 边框视觉约 3.6px；图标 16x16 经 Icon.center()
-     * 居中后 y ∈ [4.5, 20.5]，仍在按钮内）。依据：PANEL_HEIGHT=320（NekoVMGuiV2:111）、
+     * 居中后 y ∈ [4.5, 20.5]，仍在按钮内）。依据：PANEL_HEIGHT=320（压扁当月的面板高）、
      * panel 内缘 316——11 槽 × 28 = 308 仅按钮已超 316，放不下为既定事实，压扁是最小可行调整。
+     * 注：v1.8.61 面板加高至 344（十档硬币列表让位）后面板内缘 340，28px 原生高度亦放得下，
+     * 此压扁值属历史取值，暂不改动。
      */
     private static final int TAB_BUTTON_HEIGHT = 25;
 
@@ -682,8 +686,10 @@ public final class TradePage {
                     }
                 });
                 poolButton.tooltipAutoUpdate(true);
-                // 池数量不足时隐藏本按钮（不占位，列尾 collapseDisabledChild 压缩）
-                poolButton.setEnabledIf(w -> poolAt(index) != null);
+                // 池数量不足时隐藏本按钮（不占位，列尾 collapseDisabledChild 压缩）；
+                // 任务二（方案 B）：锁定卡池标签对玩家直接不显示，仅编辑模式仍显示以便编辑
+                poolButton
+                    .setEnabledIf(w -> poolAt(index) != null && (gui.isEditModeActive() || poolAt(index).unlocked));
                 subTabColumn.child(poolButton);
             }
             // --- 「新建池」按钮：仅编辑模式显示（列尾），点击打开空白池编辑面板 ---
@@ -1177,61 +1183,166 @@ public final class TradePage {
     /**
      * 创建猫猫币余额显示行
      * <p>
-     * 为每种猫猫币创建一个 {@link NekoCoinDisplayV2} 组件，
-     * 含 serp 缓动动画和弹出按钮。
+     * 任务一：去掉币图标与横向单行，改为「两列 × 5 行」纯文字网格，列出全部 10 档币与
+     * 玩家个人钱包（UUID 维度）余额。原 {@code NekoCoinDisplayV2} 每枚宽 76、含 22px 币图标，
+     * 10 档横排会溢出 178 宽面板；纯文字行 + 12px 导入按钮每格约 84px，两列共 170px 内不重叠，
+     * 且余额为 0 的档位也照常显示（要求列出每一种硬币）。
      *
      * @param syncManager 面板同步管理器
-     * @return 猫猫币显示行 Widget
+     * @return 猫猫币显示网格 Widget
      */
     private IWidget createCoinDisplayRow(PanelSyncManager syncManager) {
-        // v1.6.22：改造为单行布局，ME 导入按钮移入 NekoCoinDisplayV2 与弹出按钮同行
-        Flow column = Flow.column()
-            .fullWidth()
-            .marginBottom(2);
-
-        // === 余额行（含 ME 导入按钮）===
+        // 外层横排容器：两列并排；关闭货币显示时整块隐藏（沿用「货币显示开关」语义）
         Flow row = Flow.row()
-            .height(22)
             .fullWidth()
-            .marginBottom(2);
+            .marginBottom(2)
+            .setEnabledIf(w -> gui.showCoins);
 
-        // 十档币布局取舍（任务二）：面板宽 PANEL_WIDTH=178，每枚币组件宽 76，
-        // 原先写死 2 种币正好放得下；扩展到 10 种后若全排一行会横向溢出并相互重叠。
-        // 取舍：仍按档位升序逐枚生成（getNekoCurrencyIds 的顺序即档位顺序），但每枚绑定
-        // 「余额 > 0 才显示」的 setEnabledIf（每帧动态求值，规避客户端建 GUI 时余额同步值
-        // 尚未到达的时间窗），行内 collapseDisabledChild 自动收拢零余额档位、不占位不重叠；
-        // 同时持有超过约 2 档非零币的极端情况，超出可视宽度的档位由面板裁剪，不会崩溃。
-        for (String currencyId : NekoCurrencyRegistrar.getNekoCurrencyIds()) {
-            final String cid = currencyId;
-            String displayName = NekoCurrencyRegistrar.getDisplayName(currencyId);
-            NekoCoinDisplayV2 coinDisplay = new NekoCoinDisplayV2(syncManager, currencyId, displayName);
-            // 注入 ME 余额查询器，使弹出按钮 tooltip 显示 ME 网络余额
-            coinDisplay.setMeAmountSupplier(() -> gui.meCoinAmounts.getOrDefault(cid, 0));
-            // v1.6.22：注入 ME 导入配置（替代原 importRow 独立行）
-            coinDisplay.setMeImportConfig(
-                () -> gui.meCoinAmounts.getOrDefault(cid, 0),
-                () -> gui.hasUplinkSync != null && gui.hasUplinkSync.getValue(),
-                () -> {
-                    BooleanSyncValue sync = gui.coinOps.getImportMeCoinSync(cid);
-                    if (sync != null) {
-                        sync.setValue(true);
-                    }
-                });
-            // 余额非零才显示；借下方 row 的 collapseDisabledChild 收拢零余额档位
-            IntSyncValue balanceSync = syncManager
-                .findSyncHandler("nekoCoinAmount_" + currencyId, 0, IntSyncValue.class);
-            if (balanceSync != null) {
-                coinDisplay.setEnabledIf(w -> balanceSync.getValue() > 0);
+        // 两列 × 5 行：左列档位 1–5，右列档位 6–10（getNekoCurrencyIds 即档位升序）
+        Flow leftColumn = Flow.column()
+            .width(85);
+        Flow rightColumn = Flow.column()
+            .width(85);
+        String[] ids = NekoCurrencyRegistrar.getNekoCurrencyIds();
+        for (int i = 0; i < ids.length; i++) {
+            Flow cell = createCoinCell(syncManager, ids[i]);
+            if (i < 5) {
+                leftColumn.child(cell);
+            } else {
+                rightColumn.child(cell);
             }
-            row.child(coinDisplay);
         }
-
-        // 根据货币显示开关控制余额行的显示/隐藏
-        row.setEnabledIf(w -> gui.showCoins)
+        row.child(leftColumn)
+            .child(rightColumn);
+        // 外层 column：关闭「货币显示」时整行塌缩（collapseDisabledChild 让被禁用的行不占位，
+        // 与旧结构一致，避免开关关闭后残留约 5 行空白）
+        Flow wrapper = Flow.column()
+            .fullWidth()
             .collapseDisabledChild(true);
-        column.child(row);
+        wrapper.child(row);
+        return wrapper;
+    }
 
-        return column;
+    /**
+     * 创建单个币档位格子（文字行按钮 + 12px ME 导入按钮）
+     * <p>
+     * 左为透明背景文字按钮：动态显示「名称 余额」（余额 0 也显示），点击沿用既有语义——
+     * Ctrl=弹出一组 64、Shift=弹出全部、都未按=忽略防误触；tooltip 首行「余额 名称」，
+     * ME 余额 &gt; 0 时追加「ME 网络」行，末行灰斜体提示。右为 12px ME 导入按钮，
+     * 仅 uplink 在线时可用，点击从 ME 导入该币。
+     *
+     * @param syncManager 面板同步管理器
+     * @param currencyId  猫猫币 ID
+     * @return 单格 Widget（高 11 的横排）
+     */
+    private Flow createCoinCell(PanelSyncManager syncManager, String currencyId) {
+        final String cid = currencyId;
+        final String displayName = NekoCurrencyRegistrar.getDisplayName(currencyId);
+        // 余额同步值：每帧动态求值，余额为 0 也要显示（列出每一种硬币）
+        final IntSyncValue bal = syncManager.findSyncHandler("nekoCoinAmount_" + currencyId, 0, IntSyncValue.class);
+
+        // ① 透明背景文字按钮：撑满格子剩余宽度（72 = 列宽 85 - 12 导入按钮 - 1 内边距）
+        ButtonWidget<?> textButton = new ButtonWidget<>().disableThemeBackground(true)
+            .disableHoverThemeBackground(true)
+            .width(72)
+            .height(11)
+            .overlay(IKey.dynamic(() -> displayName + " " + readableAmount(bal != null ? bal.getValue() : 0)))
+            .onMousePressed(btn -> {
+                // Ctrl：弹出一组（64）；Shift：弹出全部；两者都没按：忽略（防误触）
+                if (isCtrlDown()) {
+                    BooleanSyncValue stackSync = syncManager
+                        .findSyncHandler("nekoEjectCoinStack_" + cid, 0, BooleanSyncValue.class);
+                    if (stackSync != null) {
+                        stackSync.setValue(true);
+                    }
+                    return true;
+                }
+                if (!isShiftDown()) {
+                    return false;
+                }
+                BooleanSyncValue ejectSync = syncManager
+                    .findSyncHandler("nekoEjectCoin_" + cid, 0, BooleanSyncValue.class);
+                if (ejectSync != null) {
+                    ejectSync.setValue(true);
+                }
+                return true;
+            })
+            .tooltipDynamic(builder -> {
+                builder.clearText();
+                int amount = bal != null ? bal.getValue() : 0;
+                builder.addLine(amount + " " + displayName);
+                int meAmt = gui.meCoinAmounts.getOrDefault(cid, 0);
+                if (meAmt > 0) {
+                    builder.addLine(IKey.str(EnumChatFormatting.LIGHT_PURPLE + "ME 网络: " + meAmt));
+                }
+                builder.emptyLine();
+                builder.addLine(
+                    IKey.str("Shift+左键 弹出全部 / Ctrl+左键 弹出一组")
+                        .style(IKey.GRAY, IKey.ITALIC));
+                builder.setAutoUpdate(true);
+            });
+
+        // ② 12px ME 导入按钮：复用 WALLET_PERSONAL 图标，uplink 在线时可用，点击从 ME 导入
+        ButtonWidget<?> importButton = new ButtonWidget<>().size(12, 11)
+            .disableThemeBackground(true)
+            .disableHoverThemeBackground(true)
+            .overlay(
+                new IDrawable[] { NekoGuiTextures.WALLET_PERSONAL.asIcon()
+                    .size(11) })
+            .onMouseTapped(mouse -> {
+                BooleanSyncValue sync = gui.coinOps.getImportMeCoinSync(cid);
+                if (sync != null) {
+                    sync.setValue(true);
+                }
+                return true;
+            })
+            .tooltipDynamic(builder -> {
+                builder.clearText();
+                builder.addLine(IKey.str(EnumChatFormatting.LIGHT_PURPLE + "从 ME 网络导入" + displayName));
+                builder.addLine(IKey.str(EnumChatFormatting.GRAY + "ME 余额: " + gui.meCoinAmounts.getOrDefault(cid, 0)));
+                builder.setAutoUpdate(true);
+            })
+            .setEnabledIf(w -> gui.hasUplinkSync != null && gui.hasUplinkSync.getValue());
+
+        return Flow.row()
+            .height(11)
+            .child(textButton)
+            .child(importButton);
+    }
+
+    /**
+     * 将余额转为可读字符串（&lt;10000 原样；&lt;1000000 显示 K；否则显示 M）
+     * <p>
+     * 与 {@code NekoCoinDisplayV2#getReadableString} 同口径：格子文字宽 72px，
+     * 大额直接显示全数字会被裁剪，故沿用 K/M 缩写保持与旧组件一致的可读性。
+     */
+    private static String readableAmount(int amount) {
+        if (amount < 10000) {
+            return "" + amount;
+        }
+        if (amount < 1000000) {
+            return amount / 1000 + "K";
+        }
+        return amount / 1000000 + "M";
+    }
+
+    /**
+     * 检测 Shift 键是否按下（左/右任一）
+     * <p>
+     * 参考 {@code NekoCoinDisplayV2#isShiftDown}，用 {@link Keyboard#isKeyDown} 实时检测，
+     * 与点击语义保持一致（Shift=弹出全部）。
+     */
+    private static boolean isShiftDown() {
+        return Keyboard.isKeyDown(Keyboard.KEY_LSHIFT) || Keyboard.isKeyDown(Keyboard.KEY_RSHIFT);
+    }
+
+    /**
+     * 检测 Ctrl 键是否按下（左/右任一）
+     * <p>
+     * 参考 {@code NekoCoinDisplayV2#isCtrlDown}，用于 Ctrl+点击弹出一组猫猫币。
+     */
+    private static boolean isCtrlDown() {
+        return Keyboard.isKeyDown(Keyboard.KEY_LCONTROL) || Keyboard.isKeyDown(Keyboard.KEY_RCONTROL);
     }
 
     /**
